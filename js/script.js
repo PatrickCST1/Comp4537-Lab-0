@@ -72,9 +72,6 @@ class Rectangle {
         const maxX = clientWidth - rectWidth;
         const maxY = clientHeight - rectHeight;
         
-        // const maxX = 100;
-        // const maxY = 100;
-
         const newX = Math.floor(Math.random() * maxX);
         const newY = Math.floor(Math.random() * maxY);
 
@@ -106,7 +103,7 @@ class Rectangle {
 
         for (let i = 1; i <= n; i++) {
             const temp = new Rectangle("black", 0, 0, i, true);
-            temp.el.classList.add("absolute"); // ensures correct size
+            temp.el.classList.add("absolute");
             gameArea.appendChild(temp.el);
 
 
@@ -170,12 +167,10 @@ class GameEngine {
             rect.setScrambled(false);
             rect.toggleClickable(false);
 
-            // Remove absolute positioning
             rect.el.classList.remove("absolute");
             rect.el.style.removeProperty("--rect-x");
             rect.el.style.removeProperty("--rect-y");
 
-            // Move into ordered row
             document.getElementById(`rectangle-${rectangleValue}`)?.remove();
             document.getElementById("orderedRow").append(rect.el);
             document.getElementById("orderedRow").classList.remove("hidden");
@@ -189,12 +184,10 @@ class GameEngine {
                 rect.setScrambled(false);
                 rect.toggleClickable(false);
 
-                // Remove absolute positioning
                 rect.el.classList.remove("absolute");
                 rect.el.style.removeProperty("--rect-x");
                 rect.el.style.removeProperty("--rect-y");
 
-                // Move into ordered row
                 document.getElementById(`rectangle-${rect.value}`)?.remove();
                 document.getElementById("orderedRow").append(rect.el);
                 document.getElementById("orderedRow").classList.remove("hidden");
@@ -250,11 +243,9 @@ class GameEngine {
         for (let i = 0; i < rounds; i++) {
             this.scrambleRectangles();
 
-            // Wait 2 seconds before next scramble
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
-        // Add event listeners AFTER all scrambling is done
         this.rectangles.forEach(rect => {
             rect.setCallback(this.selectRectangle.bind(this));
             rect.toggleClickable(true);
@@ -286,7 +277,6 @@ class GameEngine {
             rect.el.classList.add("absolute");
             gameArea.appendChild(rect.el);
 
-            // NEW: randomize position using your new method
             rect.randomizePosition(areaWidth, areaHeight);
         });
     }
@@ -294,7 +284,6 @@ class GameEngine {
 
 
 function main() {
-    // Add event listener to startBtn
     let gameEngine = new GameEngine();
     document.getElementById("startBtn").addEventListener("click", () => gameEngine.initializeGame());
 

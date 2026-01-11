@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 0</title>
+    <title id="tabTitle"></title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="">
-        <h1>Memory Gamed</h1>
+    <div id="wrapper">
+        <h1 id="gameTitle"></h1>
 
         <section id="setup">
-            <label for="countInput">Enter a number (3-7):</label>
+            <label for="countInput" id="countInputLabel"></label>
             <input type="number" id="countInput" min="3" max="7">
-            <button id="startBtn">Start</button>
+            <button id="startBtn"></button>
         </section>
 
         <section id="messages">
@@ -26,10 +26,9 @@
         </section>
 
 
-        <!-- Load messages -->
-        <script src="lang/messages/en/user.js"></script>
+
         <!-- Load game logic -->
-         <script src="js/script.js"></script>
+         <script type="module" src="js/script.js"></script>
     </div>
 </body>
 </html>

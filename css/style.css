@@ -1,7 +1,8 @@
 /* Basic layout */
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    margin: 0px;
+    padding: 20px;
     background: #f7f7f7;
     color: #333;
 }
@@ -31,7 +32,7 @@ h1 {
 /* Game area container */
 #game {
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
     padding: 20px;
     border: 2px solid #ccc;
     background: white;
@@ -67,7 +68,7 @@ h1 {
 
 
 #wrapper {
-    width: min(100%, 1000px);
+    width: min(100%, 1500px);
     margin: 0 auto;          /* centers the wrapper */
     display: flex;
     flex-direction: column;

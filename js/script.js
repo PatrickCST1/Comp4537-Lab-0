@@ -1,3 +1,5 @@
+import { STRINGS } from "../lang/messages/en/user.js";
+
 class Rectangle {
     constructor(color, x, y, value, scrambled = false) {
         this.color = color;
@@ -5,6 +7,8 @@ class Rectangle {
         this.y = y;
         this.value = value;
         this.scrambled = scrambled;
+        this.clickable = false;
+        this.callback = null;
 
         this.el = document.createElement("div");
         this.el.classList.add("rectangle");
@@ -17,7 +21,28 @@ class Rectangle {
         this.el.style.setProperty("--rect-y", y + "px");
         this.el.style.setProperty("--rect-color", color);
 
+        this.el.id = `rectangle-${this.value}`;
+
+        this.onClick = this.onClick.bind(this);
+        this.el.addEventListener("click", this.onClick);
+
+
         this.updateDisplay();
+    }
+
+    onClick() {
+        if (this.clickable == true && this.callback != null) {
+            this.callback(this.value);
+            this.clickable = false;
+        }
+    }
+
+    toggleClickable(isClickable) {
+        this.clickable = isClickable;
+    }
+
+    setCallback(callback) {
+        this.callback = callback;
     }
 
     updateDisplay() {
@@ -110,6 +135,7 @@ class Rectangle {
 class UserInterface {
     constructor() {
         this.messageDiv = document.getElementById("message");
+        this.setHTMLText();
     }
 
     setMessage(message) {
@@ -119,6 +145,13 @@ class UserInterface {
     clearMessage() {
         this.messageDiv.textContent = "";
     }
+
+    setHTMLText() {
+        document.getElementById("tabTitle").textContent = STRINGS.APP_TITLE;
+        document.getElementById("gameTitle").textContent = STRINGS.GAME_TITLE;
+        document.getElementById("countInputLabel").textContent = STRINGS.INPUT_LABEL_TEXT;
+        document.getElementById("startBtn").textContent = STRINGS.START_BUTTON_TEXT;
+    }
 }
 
 
@@ -127,6 +160,51 @@ class GameEngine {
         this.rectangles = [];
         this.rectangleCount = 0;
         this.userInterface = new UserInterface();
+        this.nextRectangle = 1;
+    }
+
+    selectRectangle(rectangleValue) {
+        if (rectangleValue == this.nextRectangle) {
+            const rect = this.rectangles[rectangleValue - 1];
+
+            rect.setScrambled(false);
+            rect.toggleClickable(false);
+
+            // Remove absolute positioning
+            rect.el.classList.remove("absolute");
+            rect.el.style.removeProperty("--rect-x");
+            rect.el.style.removeProperty("--rect-y");
+
+            // Move into ordered row
+            document.getElementById(`rectangle-${rectangleValue}`)?.remove();
+            document.getElementById("orderedRow").append(rect.el);
+            document.getElementById("orderedRow").classList.remove("hidden");
+
+            this.nextRectangle++;
+
+        } else {
+            document.getElementById("gameArea").innerHTML = "";
+            document.getElementById("orderedRow").innerHTML = "";
+            this.rectangles.forEach((rect)=>{
+                rect.setScrambled(false);
+                rect.toggleClickable(false);
+
+                // Remove absolute positioning
+                rect.el.classList.remove("absolute");
+                rect.el.style.removeProperty("--rect-x");
+                rect.el.style.removeProperty("--rect-y");
+
+                // Move into ordered row
+                document.getElementById(`rectangle-${rect.value}`)?.remove();
+                document.getElementById("orderedRow").append(rect.el);
+                document.getElementById("orderedRow").classList.remove("hidden");
+            })
+            this.userInterface.setMessage(STRINGS.WRONG_ORDER);
+        }
+
+        if (this.nextRectangle > this.rectangleCount) {
+            this.userInterface.setMessage(STRINGS.EXCELLENT_MEMORY);
+        }
     }
 
     displayRectangles() {
@@ -142,17 +220,20 @@ class GameEngine {
     }
 
     initializeGame () {
+        document.getElementById("orderedRow").innerHTML = "";
+        document.getElementById("gameArea").innerHTML = "";
+        
         let input = document.getElementById("countInput");
         this.rectangleCount = input.value;
 
         if (isNaN(this.rectangleCount) || this.rectangleCount < 3 || this.rectangleCount > 7) {
-            this.userInterface.setMessage("Please enter a number between 3 and 7 inclusive");
+            this.userInterface.setMessage(STRINGS.INPUT_LABEL);
             return;
         }
 
         this.rectangles = Rectangle.getRectArray(this.rectangleCount);
 
-        this.userInterface.setMessage(`You have ${this.rectangleCount} seconds to memorize the order`);
+        this.userInterface.setMessage(STRINGS.MEMORIZATION_START + this.rectangleCount + STRINGS.MEMORIZATION_END);
         this.displayRectangles();
 
         setTimeout(() => {
@@ -160,9 +241,11 @@ class GameEngine {
         }, this.rectangleCount * 1000);
     }
 
+
+
     async runGame() {
-        const rounds = this.rectangleCount; // or whatever N you want
-        console.log(`Rectangle count ${this.rectangleCount}`);
+        const rounds = this.rectangleCount;
+        this.userInterface.setMessage(STRINGS.SHUFFLING);
 
         for (let i = 0; i < rounds; i++) {
             this.scrambleRectangles();
@@ -173,11 +256,11 @@ class GameEngine {
 
         // Add event listeners AFTER all scrambling is done
         this.rectangles.forEach(rect => {
-            rect.el.addEventListener("click", () => {
-                console.log(`Pressed rectangle value: ${rect.value}`);
-                rect.el.classList.add("hidden");
-            });
+            rect.setCallback(this.selectRectangle.bind(this));
+            rect.toggleClickable(true);
         });
+
+        this.userInterface.setMessage(STRINGS.GOOD_LUCK);
     }
 
 
@@ -189,7 +272,6 @@ class GameEngine {
         orderedRow.classList.add("hidden");
         gameArea.classList.remove("hidden");
         gameArea.innerHTML = "";
-        this.userInterface.setMessage("Good luck!");
 
         gameArea.classList.remove("hidden");
         gameArea.innerHTML= "";
@@ -213,7 +295,7 @@ class GameEngine {
 
 function main() {
     // Add event listener to startBtn
-    gameEngine = new GameEngine();
+    let gameEngine = new GameEngine();
     document.getElementById("startBtn").addEventListener("click", () => gameEngine.initializeGame());
 
 }

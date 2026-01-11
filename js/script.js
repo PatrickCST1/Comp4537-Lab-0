@@ -9,7 +9,6 @@ class Rectangle {
         this.el = document.createElement("div");
         this.el.classList.add("rectangle");
 
-        // Store dynamic values as data attributes
         this.el.dataset.x = x;
         this.el.dataset.y = y;
         this.el.dataset.color = color;
@@ -39,129 +38,184 @@ class Rectangle {
     attachTo(container) {
         container.appendChild(this.el);
     }
-}
 
+    randomizePosition(clientWidth, clientHeight) {
+        const rectWidth = this.el.offsetWidth;
+        const rectHeight = this.el.offsetHeight;
+        console.log(this.el.offsetWidth)
 
+        const maxX = clientWidth - rectWidth;
+        const maxY = clientHeight - rectHeight;
+        
+        // const maxX = 100;
+        // const maxY = 100;
 
-function getRectArray(n) {
-    const rects = [];
-    const gameArea = document.getElementById("gameArea");
+        const newX = Math.floor(Math.random() * maxX);
+        const newY = Math.floor(Math.random() * maxY);
 
-    // Ensure gameArea is visible so clientWidth/Height are valid
-    gameArea.classList.remove("hidden");
+        this.x = newX;
+        this.y = newY;
 
-    const areaWidth = gameArea.clientWidth;
-    const areaHeight = gameArea.clientHeight;
+        this.el.dataset.x = newX;
+        this.el.dataset.y = newY;
 
-    for (let i = 1; i <= n; i++) {
-        // Create a temporary rectangle to measure size
-        const temp = new Rectangle("black", 0, 0, i, true);
-        gameArea.appendChild(temp.el);
-
-        const rectWidth = temp.el.offsetWidth;
-        const rectHeight = temp.el.offsetHeight;
-
-        // Remove temp element
-        gameArea.removeChild(temp.el);
-
-        const maxX = areaWidth - rectWidth;
-        const maxY = areaHeight - rectHeight;
-
-        const x = Math.floor(Math.random() * maxX);
-        const y = Math.floor(Math.random() * maxY);
-
-        const color = getRandomColor();
-        const rect = new Rectangle(color, x, y, i, true);
-
-        rects.push(rect);
+        this.el.style.setProperty("--rect-x", newX + "px");
+        this.el.style.setProperty("--rect-y", newY + "px");
     }
 
-    return rects;
-}
-
-
-
-
-function getRandomColor() {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    return `rgb(${r}, ${g}, ${b})`;
-}
-
-
-function displayRectangles(rectArray) {
-    const orderedRow = document.getElementById("orderedRow");
-    orderedRow.innerHTML = "";
-
-    rectArray.forEach(rect => {
-        rect.setScrambled(false);
-        rect.el.classList.remove("absolute");
-        rect.el.classList.add("static");
-        orderedRow.appendChild(rect.el);
-    });
-}
-
-
-function gameSetup() {
-    const input = document.getElementById("countInput");
-    const message = document.getElementById("message");
-
-    const count = parseInt(input.value, 10);
-
-    if (isNaN(count) || count < 3 || count > 7) {
-        message.textContent = messages.error_invalid_number || "Please enter a number between 3 and 7.";
-        return;
+    static getRandomColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        return `rgb(${r}, ${g}, ${b})`;
     }
 
-    message.textContent = `You have ${count} seconds to memorize the order.`;
+    static getRectArray(n) {
+        const rects = [];
+        const gameArea = document.getElementById("gameArea");
 
-    const row = document.getElementById("orderedRow");
-    row.classList.remove("hidden");
+        gameArea.classList.remove("hidden");
 
-    // 🔹 Create ONE array of rectangles
-    const rectArray = getRectArray(count);
+        const areaWidth = gameArea.clientWidth;
+        const areaHeight = gameArea.clientHeight;
 
-    // 🔹 Display those exact rectangles in the ordered row
-    displayRectangles(rectArray);
+        for (let i = 1; i <= n; i++) {
+            const temp = new Rectangle("black", 0, 0, i, true);
+            temp.el.classList.add("absolute"); // ensures correct size
+            gameArea.appendChild(temp.el);
 
-    console.log("count:", count, "rectArray length:", rectArray.length);
 
-    setTimeout(() => {
-        runGame(rectArray);
-    }, count * 1000);
+            const rectWidth = temp.el.offsetWidth;
+            const rectHeight = temp.el.offsetHeight;
+
+            gameArea.removeChild(temp.el);
+
+            const maxX = areaWidth - rectWidth;
+            const maxY = areaHeight - rectHeight;
+
+            const x = Math.floor(Math.random() * maxX);
+            const y = Math.floor(Math.random() * maxY);
+
+            const color = Rectangle.getRandomColor();
+            const rect = new Rectangle(color, x, y, i, true);
+
+            rects.push(rect);
+        }
+
+        return rects;
+    }
 }
 
 
+class UserInterface {
+    constructor() {
+        this.messageDiv = document.getElementById("message");
+    }
 
-function runGame(rectArray) {
-    const orderedRow = document.getElementById("orderedRow");
-    const gameArea = document.getElementById("gameArea");
+    setMessage(message) {
+        this.messageDiv.textContent = message;
+    }
 
-    orderedRow.innerHTML = "";
-    orderedRow.classList.add("hidden");
-    gameArea.classList.remove("hidden");
-    gameArea.innerHTML = "";
+    clearMessage() {
+        this.messageDiv.textContent = "";
+    }
+}
 
-    rectArray.forEach(rect => {
-        rect.setScrambled(true);
 
-        rect.el.classList.remove("static");
-        rect.el.classList.add("absolute");
+class GameEngine {
+    constructor () {
+        this.rectangles = [];
+        this.rectangleCount = 0;
+        this.userInterface = new UserInterface();
+    }
 
-        rect.el.addEventListener("click", () => {
-            console.log(`Pressed rectangle value: ${rect.value}`);
-            rect.el.classList.add("hidden");
+    displayRectangles() {
+        const orderedRow = document.getElementById("orderedRow");
+        orderedRow.innerHTML = "";
+
+        this.rectangles.forEach(rect => {
+            rect.setScrambled(false);
+            rect.el.classList.remove("absolute");
+            rect.el.classList.add("static");
+            orderedRow.appendChild(rect.el);
         });
+    }
 
-        gameArea.appendChild(rect.el);
-    });
+    initializeGame () {
+        let input = document.getElementById("countInput");
+        this.rectangleCount = input.value;
+
+        if (isNaN(this.rectangleCount) || this.rectangleCount < 3 || this.rectangleCount > 7) {
+            this.userInterface.setMessage("Please enter a number between 3 and 7 inclusive");
+            return;
+        }
+
+        this.rectangles = Rectangle.getRectArray(this.rectangleCount);
+
+        this.userInterface.setMessage(`You have ${this.rectangleCount} seconds to memorize the order`);
+        this.displayRectangles();
+
+        setTimeout(() => {
+            this.runGame();
+        }, this.rectangleCount * 1000);
+    }
+
+    async runGame() {
+        const rounds = this.rectangleCount; // or whatever N you want
+        console.log(`Rectangle count ${this.rectangleCount}`);
+
+        for (let i = 0; i < rounds; i++) {
+            this.scrambleRectangles();
+
+            // Wait 2 seconds before next scramble
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        // Add event listeners AFTER all scrambling is done
+        this.rectangles.forEach(rect => {
+            rect.el.addEventListener("click", () => {
+                console.log(`Pressed rectangle value: ${rect.value}`);
+                rect.el.classList.add("hidden");
+            });
+        });
+    }
+
+
+    scrambleRectangles() {
+        const orderedRow = document.getElementById("orderedRow");
+        const gameArea = document.getElementById("gameArea");
+
+        orderedRow.innerHTML = "";
+        orderedRow.classList.add("hidden");
+        gameArea.classList.remove("hidden");
+        gameArea.innerHTML = "";
+        this.userInterface.setMessage("Good luck!");
+
+        gameArea.classList.remove("hidden");
+        gameArea.innerHTML= "";
+
+
+        const areaWidth = gameArea.clientWidth;
+        const areaHeight = gameArea.clientHeight;
+
+        this.rectangles.forEach(rect => {
+            rect.setScrambled(true);
+            rect.el.classList.remove("static");
+            rect.el.classList.add("absolute");
+            gameArea.appendChild(rect.el);
+
+            // NEW: randomize position using your new method
+            rect.randomizePosition(areaWidth, areaHeight);
+        });
+    }
 }
 
 
 function main() {
     // Add event listener to startBtn
-    document.getElementById("startBtn").addEventListener("click", gameSetup);
+    gameEngine = new GameEngine();
+    document.getElementById("startBtn").addEventListener("click", () => gameEngine.initializeGame());
+
 }
 
 main();

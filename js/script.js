@@ -1,3 +1,5 @@
+//Copilot was used for rectangle randomization logic
+
 import { STRINGS } from "../lang/messages/en/user.js";
 
 class Rectangle {
@@ -215,6 +217,7 @@ class GameEngine {
     initializeGame () {
         document.getElementById("orderedRow").innerHTML = "";
         document.getElementById("gameArea").innerHTML = "";
+        this.nextRectangle = 1;
         
         let input = document.getElementById("countInput");
         this.rectangleCount = input.value;
